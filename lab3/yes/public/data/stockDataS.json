@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "model": "Noemi",
+    "color": "2 colours",
+    "price": 95,
+    "images": {
+      "webp": "../img/glasses.pics/001.webp",
+      "png": "../img/glasses.pics/001.png?_v=1633799610512"
+    }
+  },
+  {
+    "id": 2,
+    "model": "Noemi",
+    "color": "3 colours",
+    "price": 285,
+    "images": {
+      "webp": "../img/glasses.pics/002.webp",
+      "png": "../img/glasses.pics/002.png?_v=1633799610512"
+    }
+  },
+  {
+    "id": 3,
+    "model": "Louisa Nylon",
+    "color": "2 colours",
+    "price": 315,
+    "images": {
+      "webp": "../img/glasses.pics/003.webp",
+      "png": "../img/glasses.pics/003.png?_v=1633799610512"
+    }
+  }
+]
