@@ -149,18 +149,39 @@ const Model = () => {
           <Typography color="text.primary">Models</Typography>
         </Breadcrumbs>
 
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
-          Featured Models
-        </Typography>
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ mb: 6, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          sx={{
+            mb: 4,
+            maxWidth: 800,
+            textAlign: 'center',
+            margin: '0 auto'
+          }}
         >
           Discover our carefully curated collection of eyewear, featuring the latest
           trends and timeless classics. Each piece is crafted with precision and
           style in mind.
         </Typography>
+
+        <Box sx={{
+          mb: 6,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontWeight: 700,
+              mb: 4,
+              textAlign: 'center'
+            }}
+          >
+            Our Models
+          </Typography>
+        </Box>
       </Box>
 
       <Grid container spacing={4}>

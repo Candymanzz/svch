@@ -168,17 +168,38 @@ const Bestsellers = () => {
           <Typography color="text.primary">Bestsellers</Typography>
         </Breadcrumbs>
 
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
-          Our Bestsellers
-        </Typography>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 4, maxWidth: 800 }}
-        >
-          Discover our most popular eyewear selections. These pieces have earned
-          their status through exceptional quality, style, and customer satisfaction.
-        </Typography>
+        <Box sx={{
+          mb: 6,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontWeight: 700,
+              mb: 4,
+              textAlign: 'center'
+            }}
+          >
+            Bestsellers
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{
+              mb: 4,
+              maxWidth: 800,
+              textAlign: 'center',
+              margin: '0 auto'
+            }}
+          >
+            Discover our most popular eyewear selections. These pieces have earned
+            their place as customer favorites through their exceptional quality,
+            style, and comfort.
+          </Typography>
+        </Box>
       </Box>
 
       <Grid container spacing={4}>

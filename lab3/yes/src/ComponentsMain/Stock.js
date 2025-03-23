@@ -149,35 +149,35 @@ const Stock = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Box sx={{ mb: 6 }}>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-          sx={{ mb: 4 }}
+      <Box sx={{
+        mb: 6,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            mb: 4,
+            textAlign: 'center'
+          }}
         >
-          <Link
-            underline="hover"
-            color="inherit"
-            component={RouterLink}
-            to="/"
-            sx={{ display: "flex", alignItems: "center" }}
-          >
-            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-            Home
-          </Link>
-          <Typography color="text.primary">New Arrivals</Typography>
-        </Breadcrumbs>
-
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
-          New Arrivals
+          In Stock
         </Typography>
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ mb: 4, maxWidth: 800 }}
+          sx={{
+            mb: 4,
+            maxWidth: 800,
+            textAlign: 'center',
+            margin: '0 auto'
+          }}
         >
-          Be the first to explore our latest eyewear collections. Fresh designs
-          and innovative styles await you in our new arrivals section.
+          Browse our current collection of available eyewear. Each piece is ready
+          for immediate purchase and comes with our quality guarantee.
         </Typography>
       </Box>
 
