@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 const Shop = () => {
   return (
@@ -6,7 +6,7 @@ const Shop = () => {
       <div className="shop__item _scr-item">
         <div className="shop__image _ibg">
           <picture>
-            <source srcset="img/photos/02.webp" type="image/webp" />
+            <source srcSet="img/photos/02.webp" type="image/webp" />
             <img
               src="img/photos/02.jpg?_v=1633799610512"
               alt="woman with glasses"
@@ -20,7 +20,7 @@ const Shop = () => {
       <div className="shop__item _scr-item">
         <div className="shop__image _ibg">
           <picture>
-            <source srcset="img/photos/03.webp" type="image/webp" />
+            <source srcSet="img/photos/03.webp" type="image/webp" />
             <img
               src="img/photos/03.jpg?_v=1633799610512"
               alt="woman with glasses"

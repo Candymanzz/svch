@@ -1,26 +1,26 @@
-import React, { Component } from "react";
+import React from "react";
 
 const Shop2 = () => {
   return (
-    <section class="page__for-sight shop">
-      <div class="shop__item">
-        <div class="shop__image _ibg">
+    <section className="page__for-sight shop">
+      <div className="shop__item">
+        <div className="shop__image _ibg">
           <picture>
-            <source srcset="img/photos/05.webp" type="image/webp" />
+            <source srcSet="img/photos/05.webp" type="image/webp" />
             <img
               src="img/photos/05.jpg?_v=1633799610512"
               alt="woman with glasses"
             />
           </picture>
         </div>
-        <a href="#no-scroll" class="shop__link">
+        <a href="#no-scroll" className="shop__link">
           FOR SIGHT
         </a>
       </div>
-      <div class="shop__item">
-        <div class="shop__image _ibg">
+      <div className="shop__item">
+        <div className="shop__image _ibg">
           <picture>
-            <source srcset="img/photos/06.webp" type="image/webp" />
+            <source srcSet="img/photos/06.webp" type="image/webp" />
             <img
               src="img/photos/06.jpg?_v=1633799610512"
               alt="woman with glasses"

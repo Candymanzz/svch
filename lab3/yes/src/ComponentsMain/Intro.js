@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { useState } from "react";
 import Popup from "../Popup/Popup";
 
 const Intro = () => {
@@ -32,7 +32,7 @@ const Intro = () => {
         <div className="intro__image">
           <div className="intro__pic _ibg">
             <picture>
-              <source srcset="img/photos/01.webp" type="image/webp" />
+              <source srcSet="img/photos/01.webp" type="image/webp" />
 
               <img
                 src="img/photos/01.jpg?_v=1633799610512"
