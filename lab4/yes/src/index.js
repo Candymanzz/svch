@@ -8,6 +8,7 @@ import reportWebVitals from "./reportWebVitals";
 
 const theme = createTheme({
   palette: {
+    mode: 'light',
     primary: {
       main: '#1976d2',
     },
