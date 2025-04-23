@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "name": "Laptop",
+        "description": "High-performance laptop with SSD",
+        "price": 1200
+    },
+    {
+        "id": 2,
+        "name": "Smartphone",
+        "description": "Latest model with 5G support",
+        "price": 800
+    },
+    {
+        "id": 3,
+        "name": "Headphones",
+        "description": "Wireless noise-canceling headphones",
+        "price": 250
+    },
+    {
+        "id": 4,
+        "name": "Tablet",
+        "description": "10-inch tablet with stylus support",
+        "price": 600
+    },
+    {
+        "id": 5,
+        "name": "Smartwatch",
+        "description": "Fitness tracking smartwatch",
+        "price": 300
+    },
+    {
+        "id": 6,
+        "name": "Camera",
+        "description": "Mirrorless camera with 4K video",
+        "price": 1500
+    },
+    {
+        "id": 7,
+        "name": "Printer",
+        "description": "All-in-one color printer",
+        "price": 400
+    },
+    {
+        "id": 8,
+        "name": "Monitor",
+        "description": "27-inch 4K display",
+        "price": 700
+    },
+    {
+        "id": 9,
+        "name": "Keyboard",
+        "description": "Mechanical RGB keyboard",
+        "price": 150
+    },
+    {
+        "id": 10,
+        "name": "Mouse",
+        "description": "Wireless gaming mouse",
+        "price": 100
+    }
+]
