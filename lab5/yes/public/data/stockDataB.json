@@ -1,0 +1,32 @@
+[
+  {
+    "id": 4,
+    "model": "Saskia",
+    "color": "1 colour",
+    "price": 195,
+    "images": {
+      "webp": "../img/glasses.pics/004.webp",
+      "png": "../img/glasses.pics/004.png?_v=1633799610512"
+    }
+  },
+  {
+    "id": 5,
+    "model": "Cynthia",
+    "color": "2 colours",
+    "price": 185,
+    "images": {
+      "webp": "../img/glasses.pics/005.webp",
+      "png": "../img/glasses.pics/005.png?_v=1633799610512"
+    }
+  },
+  {
+    "id": 6,
+    "model": "Eimear",
+    "color": "4 colours",
+    "price": 435,
+    "images": {
+      "webp": "../img/glasses.pics/006.webp",
+      "png": "../img/glasses.pics/006.png?_v=1633799610512"
+    }
+  }
+]
