@@ -32,6 +32,7 @@ const SaleList = () => {
         contractId: '',
         furnitureId: '',
         quantity: '',
+        image: ''
     });
 
     const fetchSales = async () => {
@@ -111,9 +112,10 @@ const SaleList = () => {
         if (sale) {
             setEditingSale(sale);
             setFormData({
-                contractId: sale.contractId,
-                furnitureId: sale.furnitureId,
+                contractId: sale.contractId._id || sale.contractId,
+                furnitureId: sale.furnitureId._id || sale.furnitureId,
                 quantity: sale.quantity,
+                image: sale.image || ''
             });
         } else {
             setEditingSale(null);
@@ -121,6 +123,7 @@ const SaleList = () => {
                 contractId: '',
                 furnitureId: '',
                 quantity: '',
+                image: ''
             });
         }
         setOpen(true);
@@ -133,6 +136,7 @@ const SaleList = () => {
             contractId: '',
             furnitureId: '',
             quantity: '',
+            image: ''
         });
     };
 
@@ -140,7 +144,7 @@ const SaleList = () => {
         e.preventDefault();
         try {
             const url = editingSale
-                ? `http://localhost:5000/api/sales/${editingSale.id}`
+                ? `http://localhost:5000/api/sales/${editingSale._id}`
                 : 'http://localhost:5000/api/sales';
 
             const method = editingSale ? 'PUT' : 'POST';
@@ -150,52 +154,81 @@ const SaleList = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    quantity: parseInt(formData.quantity, 10)
+                }),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
             }
 
             await fetchSales();
             handleClose();
+            setError(null);
         } catch (error) {
             console.error('Error saving sale:', error);
-            setError('Failed to save sale. Please try again.');
+            setError(error.message || 'Failed to save sale. Please try again.');
         }
     };
 
     const handleDelete = async (id) => {
+        if (!id) {
+            console.error('No sale ID provided for deletion');
+            setError('Invalid sale ID');
+            return;
+        }
+
         if (window.confirm('Are you sure you want to delete this sale?')) {
             try {
+                console.log('Deleting sale with ID:', id);
                 const response = await fetch(`http://localhost:5000/api/sales/${id}`, {
                     method: 'DELETE',
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    console.error('Server response error:', data);
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
                 }
 
+                console.log('Sale deleted successfully');
                 await fetchSales();
+                setError(null);
             } catch (error) {
                 console.error('Error deleting sale:', error);
-                setError('Failed to delete sale. Please try again.');
+                setError(error.message || 'Failed to delete sale. Please try again.');
             }
         }
     };
 
     const getContractNumber = (sale) => {
-        if (sale.Contract) {
-            return sale.Contract.number;
+        if (sale.contractId && sale.contractId.number) {
+            return sale.contractId.number;
         }
         return 'Unknown Contract';
     };
 
     const getFurnitureName = (sale) => {
-        if (sale.Furniture) {
-            return sale.Furniture.name;
+        if (sale.furnitureId && sale.furnitureId.name) {
+            return sale.furnitureId.name;
         }
         return 'Unknown Furniture';
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData({ ...formData, image: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     return (
@@ -222,6 +255,7 @@ const SaleList = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
+                            <TableCell>Image</TableCell>
                             <TableCell>Contract</TableCell>
                             <TableCell>Furniture</TableCell>
                             <TableCell>Quantity</TableCell>
@@ -230,7 +264,18 @@ const SaleList = () => {
                     </TableHead>
                     <TableBody>
                         {Array.isArray(sales) && sales.map((sale) => (
-                            <TableRow key={sale.id}>
+                            <TableRow key={sale._id}>
+                                <TableCell>
+                                    {sale.image ? (
+                                        <img
+                                            src={sale.image}
+                                            alt="Sale"
+                                            style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <Box sx={{ width: '50px', height: '50px', bgcolor: 'grey.200' }} />
+                                    )}
+                                </TableCell>
                                 <TableCell>{getContractNumber(sale)}</TableCell>
                                 <TableCell>{getFurnitureName(sale)}</TableCell>
                                 <TableCell>{sale.quantity}</TableCell>
@@ -238,7 +283,7 @@ const SaleList = () => {
                                     <IconButton onClick={() => handleOpen(sale)} color="primary">
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(sale.id)} color="error">
+                                    <IconButton onClick={() => handleDelete(sale._id)} color="error">
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>
@@ -254,6 +299,33 @@ const SaleList = () => {
                 </DialogTitle>
                 <DialogContent>
                     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+                        <Box sx={{ mb: 2 }}>
+                            <input
+                                accept="image/*"
+                                type="file"
+                                id="image-upload"
+                                onChange={handleImageChange}
+                                style={{ display: 'none' }}
+                            />
+                            <label htmlFor="image-upload">
+                                <Button
+                                    variant="outlined"
+                                    component="span"
+                                    fullWidth
+                                >
+                                    {formData.image ? 'Change Image' : 'Upload Image'}
+                                </Button>
+                            </label>
+                            {formData.image && (
+                                <Box sx={{ mt: 1, textAlign: 'center' }}>
+                                    <img
+                                        src={formData.image}
+                                        alt="Preview"
+                                        style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'contain' }}
+                                    />
+                                </Box>
+                            )}
+                        </Box>
                         <TextField
                             select
                             fullWidth
@@ -264,7 +336,7 @@ const SaleList = () => {
                             required
                         >
                             {contracts.map((contract) => (
-                                <MenuItem key={contract.id} value={contract.id}>
+                                <MenuItem key={contract._id} value={contract._id}>
                                     {contract.number}
                                 </MenuItem>
                             ))}
@@ -279,7 +351,7 @@ const SaleList = () => {
                             required
                         >
                             {furniture.map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
+                                <MenuItem key={item._id} value={item._id}>
                                     {item.name}
                                 </MenuItem>
                             ))}

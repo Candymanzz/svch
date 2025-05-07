@@ -117,7 +117,7 @@ const FurnitureList = () => {
         e.preventDefault();
         try {
             const url = editingFurniture
-                ? `http://localhost:5000/api/furniture/${editingFurniture.id}`
+                ? `http://localhost:5000/api/furniture/${editingFurniture._id}`
                 : 'http://localhost:5000/api/furniture';
 
             const method = editingFurniture ? 'PUT' : 'POST';
@@ -130,15 +130,18 @@ const FurnitureList = () => {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
             }
 
             await fetchFurniture();
             handleClose();
+            setError(null);
         } catch (error) {
             console.error('Error saving furniture:', error);
-            setError('Failed to save furniture. Please try again.');
+            setError(error.message || 'Failed to save furniture. Please try again.');
         }
     };
 
@@ -149,14 +152,17 @@ const FurnitureList = () => {
                     method: 'DELETE',
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
                 }
 
                 await fetchFurniture();
+                setError(null);
             } catch (error) {
                 console.error('Error deleting furniture:', error);
-                setError('Failed to delete furniture. Please try again.');
+                setError(error.message || 'Failed to delete furniture. Please try again.');
             }
         }
     };
@@ -194,7 +200,7 @@ const FurnitureList = () => {
                     </TableHead>
                     <TableBody>
                         {Array.isArray(furniture) && furniture.map((item) => (
-                            <TableRow key={item.id}>
+                            <TableRow key={item._id}>
                                 <TableCell>{item.name}</TableCell>
                                 <TableCell>{item.model}</TableCell>
                                 <TableCell>{item.characteristics}</TableCell>
@@ -203,7 +209,7 @@ const FurnitureList = () => {
                                     <IconButton onClick={() => handleOpen(item)} color="primary">
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(item.id)} color="error">
+                                    <IconButton onClick={() => handleDelete(item._id)} color="error">
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>

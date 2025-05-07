@@ -1,37 +1,37 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const mongoose = require('mongoose');
 
-const Sale = sequelize.define('Sale', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const saleSchema = new mongoose.Schema({
     contractId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Contracts',
-            key: 'id'
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Contract',
+        required: true
     },
     furnitureId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Furniture',
-            key: 'id'
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Furniture',
+        required: true
     },
     quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 1
-        }
+        type: Number,
+        required: true,
+        min: 1
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    date: {
+        type: Date,
+        required: true,
+        default: Date.now
+    },
+    image: {
+        type: String,
+        default: '' // URL или путь к изображению
     }
 }, {
     timestamps: true
 });
 
-module.exports = Sale; 
+module.exports = mongoose.model('Sale', saleSchema); 

@@ -1,45 +1,46 @@
-const { Sale, Contract, Furniture, Customer } = require('../models');
-const { Op } = require('sequelize');
+const Sale = require('../models/Sale');
+const Contract = require('../models/Contract');
+const Furniture = require('../models/Furniture');
+const Customer = require('../models/Customer');
 
 // Get all sales with pagination, sorting, and filtering
 const getAllSales = async (req, res) => {
     try {
-        const { page = 1, limit = 10, sortBy = 'id', sortOrder = 'ASC', ...filters } = req.query;
+        const { page = 1, limit = 10, sortBy = 'date', sortOrder = 'desc', ...filters } = req.query;
 
-        const whereClause = {};
+        const query = {};
         Object.keys(filters).forEach(key => {
             if (filters[key]) {
-                whereClause[key] = filters[key];
+                if (key === 'price' || key === 'quantity') {
+                    query[key] = parseFloat(filters[key]);
+                } else if (key === 'date') {
+                    query[key] = new Date(filters[key]);
+                } else {
+                    query[key] = { $regex: filters[key], $options: 'i' };
+                }
             }
         });
 
-        const offset = (page - 1) * limit;
-
-        const sales = await Sale.findAndCountAll({
-            where: whereClause,
-            include: [
-                {
-                    model: Contract,
-                    include: [{
-                        model: Customer,
-                        attributes: ['name', 'address', 'phone']
-                    }]
-                },
-                {
-                    model: Furniture,
-                    attributes: ['name', 'model', 'price']
+        const sales = await Sale.find(query)
+            .populate({
+                path: 'contractId',
+                populate: {
+                    path: 'customerId',
+                    select: 'name address phone'
                 }
-            ],
-            order: [[sortBy, sortOrder]],
-            limit: parseInt(limit),
-            offset: parseInt(offset)
-        });
+            })
+            .populate('furnitureId', 'name model price')
+            .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+            .limit(parseInt(limit))
+            .skip((parseInt(page) - 1) * parseInt(limit));
+
+        const total = await Sale.countDocuments(query);
 
         res.json({
-            total: sales.count,
+            total,
             page: parseInt(page),
-            totalPages: Math.ceil(sales.count / limit),
-            data: sales.rows
+            totalPages: Math.ceil(total / limit),
+            data: sales
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -49,21 +50,15 @@ const getAllSales = async (req, res) => {
 // Get sale by ID
 const getSaleById = async (req, res) => {
     try {
-        const sale = await Sale.findByPk(req.params.id, {
-            include: [
-                {
-                    model: Contract,
-                    include: [{
-                        model: Customer,
-                        attributes: ['name', 'address', 'phone']
-                    }]
-                },
-                {
-                    model: Furniture,
-                    attributes: ['name', 'model', 'price']
+        const sale = await Sale.findById(req.params.id)
+            .populate({
+                path: 'contractId',
+                populate: {
+                    path: 'customerId',
+                    select: 'name address phone'
                 }
-            ]
-        });
+            })
+            .populate('furnitureId', 'name model price');
         if (!sale) {
             return res.status(404).json({ error: 'Sale not found' });
         }
@@ -76,8 +71,18 @@ const getSaleById = async (req, res) => {
 // Create new sale
 const createSale = async (req, res) => {
     try {
-        const sale = await Sale.create(req.body);
-        res.status(201).json(sale);
+        const sale = new Sale(req.body);
+        await sale.save();
+        const populatedSale = await Sale.findById(sale._id)
+            .populate({
+                path: 'contractId',
+                populate: {
+                    path: 'customerId',
+                    select: 'name address phone'
+                }
+            })
+            .populate('furnitureId', 'name model price');
+        res.status(201).json(populatedSale);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -86,11 +91,23 @@ const createSale = async (req, res) => {
 // Update sale
 const updateSale = async (req, res) => {
     try {
-        const sale = await Sale.findByPk(req.params.id);
+        const sale = await Sale.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        )
+            .populate({
+                path: 'contractId',
+                populate: {
+                    path: 'customerId',
+                    select: 'name address phone'
+                }
+            })
+            .populate('furnitureId', 'name model price');
+
         if (!sale) {
             return res.status(404).json({ error: 'Sale not found' });
         }
-        await sale.update(req.body);
         res.json(sale);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -100,12 +117,11 @@ const updateSale = async (req, res) => {
 // Delete sale
 const deleteSale = async (req, res) => {
     try {
-        const sale = await Sale.findByPk(req.params.id);
+        const sale = await Sale.findByIdAndDelete(req.params.id);
         if (!sale) {
             return res.status(404).json({ error: 'Sale not found' });
         }
-        await sale.destroy();
-        res.status(204).send();
+        res.json({ message: 'Sale deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -115,36 +131,20 @@ const deleteSale = async (req, res) => {
 const searchSales = async (req, res) => {
     try {
         const { query } = req.query;
-        const sales = await Sale.findAll({
-            include: [
-                {
-                    model: Contract,
-                    where: {
-                        [Op.or]: [
-                            { number: { [Op.iLike]: `%${query}%` } }
-                        ]
-                    },
-                    include: [{
-                        model: Customer,
-                        where: {
-                            [Op.or]: [
-                                { name: { [Op.iLike]: `%${query}%` } },
-                                { address: { [Op.iLike]: `%${query}%` } }
-                            ]
-                        }
-                    }]
-                },
-                {
-                    model: Furniture,
-                    where: {
-                        [Op.or]: [
-                            { name: { [Op.iLike]: `%${query}%` } },
-                            { model: { [Op.iLike]: `%${query}%` } }
-                        ]
-                    }
-                }
+        const sales = await Sale.find({
+            $or: [
+                { price: { $regex: query, $options: 'i' } },
+                { quantity: { $regex: query, $options: 'i' } }
             ]
-        });
+        })
+            .populate({
+                path: 'contractId',
+                populate: {
+                    path: 'customerId',
+                    select: 'name address phone'
+                }
+            })
+            .populate('furnitureId', 'name model price');
         res.json(sales);
     } catch (error) {
         res.status(500).json({ error: error.message });

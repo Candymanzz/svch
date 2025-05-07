@@ -1,10 +1,16 @@
-const { Sequelize } = require('sequelize');
+const mongoose = require('mongoose');
 
-const sequelize = new Sequelize('furniture_store', 'postgres', 'root', {
-    host: 'localhost',
-    port: 5432,
-    dialect: 'postgres',
-    logging: false
-});
+const connectDB = async () => {
+    try {
+        await mongoose.connect('mongodb://localhost:27017/furniture_store', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log('MongoDB connected...');
+    } catch (err) {
+        console.error('MongoDB connection error:', err.message);
+        process.exit(1);
+    }
+};
 
-module.exports = sequelize; 
+module.exports = connectDB; 

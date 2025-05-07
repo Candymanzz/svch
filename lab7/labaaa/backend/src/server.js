@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const sequelize = require('./config/db');
+const connectDB = require('./config/db');
 const { Customer, Contract, Furniture, Sale } = require('./models');
 const seedDatabase = require('./seeders/seed');
 
@@ -15,32 +15,34 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Test database connection
-sequelize.authenticate()
-    .then(() => console.log('Database connected...'))
-    .catch(err => console.log('Error: ' + err));
+// Connect to MongoDB
+connectDB();
 
-// Sync database and seed initial data
+// Routes
+app.use('/api/furniture', furnitureRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/contracts', contractRoutes);
+app.use('/api/sales', saleRoutes);
+
+// Basic route
+app.get('/', (req, res) => {
+    res.send('Furniture Store API');
+});
+
+// Seed initial data
 const start = async () => {
     try {
-        // Синхронизация моделей с базой данных
-        await sequelize.sync({ force: true });
-        console.log('Database synced...');
+        // Clear existing data
+        await Promise.all([
+            Customer.deleteMany({}),
+            Furniture.deleteMany({}),
+            Contract.deleteMany({}),
+            Sale.deleteMany({})
+        ]);
 
-        // Заполнение базы данных начальными данными
+        // Seed initial data
         await seedDatabase();
         console.log('Initial data seeded...');
-
-        // Routes
-        app.use('/api/furniture', furnitureRoutes);
-        app.use('/api/customers', customerRoutes);
-        app.use('/api/contracts', contractRoutes);
-        app.use('/api/sales', saleRoutes);
-
-        // Basic route
-        app.get('/', (req, res) => {
-            res.send('Furniture Store API');
-        });
 
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);

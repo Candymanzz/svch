@@ -109,7 +109,7 @@ const CustomerList = () => {
         e.preventDefault();
         try {
             const url = editingCustomer
-                ? `http://localhost:5000/api/customers/${editingCustomer.id}`
+                ? `http://localhost:5000/api/customers/${editingCustomer._id}`
                 : 'http://localhost:5000/api/customers';
 
             const method = editingCustomer ? 'PUT' : 'POST';
@@ -122,15 +122,18 @@ const CustomerList = () => {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
             }
 
             await fetchCustomers();
             handleClose();
+            setError(null);
         } catch (error) {
             console.error('Error saving customer:', error);
-            setError('Failed to save customer. Please try again.');
+            setError(error.message || 'Failed to save customer. Please try again.');
         }
     };
 
@@ -141,14 +144,17 @@ const CustomerList = () => {
                     method: 'DELETE',
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
                 }
 
                 await fetchCustomers();
+                setError(null);
             } catch (error) {
                 console.error('Error deleting customer:', error);
-                setError('Failed to delete customer. Please try again.');
+                setError(error.message || 'Failed to delete customer. Please try again.');
             }
         }
     };
@@ -185,7 +191,7 @@ const CustomerList = () => {
                     </TableHead>
                     <TableBody>
                         {Array.isArray(customers) && customers.map((customer) => (
-                            <TableRow key={customer.id}>
+                            <TableRow key={customer._id}>
                                 <TableCell>{customer.name}</TableCell>
                                 <TableCell>{customer.address}</TableCell>
                                 <TableCell>{customer.phone}</TableCell>
@@ -193,7 +199,7 @@ const CustomerList = () => {
                                     <IconButton onClick={() => handleOpen(customer)} color="primary">
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(customer.id)} color="error">
+                                    <IconButton onClick={() => handleDelete(customer._id)} color="error">
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>

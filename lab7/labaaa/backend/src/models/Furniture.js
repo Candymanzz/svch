@@ -1,44 +1,30 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const mongoose = require('mongoose');
 
-const Furniture = sequelize.define('Furniture', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const furnitureSchema = new mongoose.Schema({
     name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            notEmpty: true
-        }
+        type: String,
+        required: true,
+        trim: true
     },
     model: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            notEmpty: true
-        }
+        type: String,
+        required: true,
+        trim: true
     },
     characteristics: {
-        type: DataTypes.TEXT,
-        allowNull: false
+        type: String,
+        required: true
     },
     price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-        validate: {
-            isDecimal: true,
-            min: 0
-        }
+        type: Number,
+        required: true,
+        min: 0
     },
     image: {
-        type: DataTypes.STRING,
-        allowNull: true
+        type: String
     }
 }, {
     timestamps: true
 });
 
-module.exports = Furniture; 
+module.exports = mongoose.model('Furniture', furnitureSchema); 

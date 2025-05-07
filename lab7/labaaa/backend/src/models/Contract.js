@@ -1,47 +1,53 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const mongoose = require('mongoose');
 
-const Contract = sequelize.define('Contract', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const contractSchema = new mongoose.Schema({
     number: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: String,
+        required: true,
         unique: true,
-        validate: {
-            notEmpty: true
-        }
+        trim: true
     },
     customerId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'Customers',
-            key: 'id'
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer',
+        required: true
     },
     date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
+        type: Date,
+        required: true,
+        default: Date.now
     },
     executionDate: {
-        type: DataTypes.DATE,
-        allowNull: false,
+        type: Date,
+        required: true,
         validate: {
-            isDate: true,
-            isAfter: function (value) {
-                if (value <= this.date) {
-                    throw new Error('Execution date must be after contract date');
-                }
-            }
+            validator: function (value) {
+                return value > this.date;
+            },
+            message: 'Execution date must be after contract date'
         }
+    },
+    totalAmount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    status: {
+        type: String,
+        enum: ['active', 'completed', 'cancelled'],
+        default: 'active'
     }
 }, {
     timestamps: true
 });
 
-module.exports = Contract; 
+// Добавляем предварительную валидацию перед сохранением
+contractSchema.pre('save', function (next) {
+    if (this.executionDate <= this.date) {
+        next(new Error('Execution date must be after contract date'));
+    } else {
+        next();
+    }
+});
+
+module.exports = mongoose.model('Contract', contractSchema); 
