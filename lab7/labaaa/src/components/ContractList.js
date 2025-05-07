@@ -24,16 +24,14 @@ import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/ico
 const ContractList = () => {
     const [contracts, setContracts] = useState([]);
     const [customers, setCustomers] = useState([]);
-    const [furniture, setFurniture] = useState([]);
     const [open, setOpen] = useState(false);
     const [editingContract, setEditingContract] = useState(null);
     const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
-        customer_id: '',
-        furniture_id: '',
-        quantity: '',
-        total_amount: '',
-        status: 'pending',
+        number: '',
+        customerId: '',
+        date: new Date().toISOString().split('T')[0],
+        executionDate: '',
     });
 
     const fetchContracts = async () => {
@@ -43,28 +41,10 @@ const ContractList = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            console.log('Received contracts data:', data); // Debug log
+            console.log('Received contracts data:', data);
 
-            // Handle different response formats
-            let contractsData = [];
-            if (Array.isArray(data)) {
-                contractsData = data;
-            } else if (data && typeof data === 'object') {
-                // If data is wrapped in a property (e.g., { contracts: [...] })
-                if (data.contracts && Array.isArray(data.contracts)) {
-                    contractsData = data.contracts;
-                } else if (data.data && Array.isArray(data.data)) {
-                    contractsData = data.data;
-                } else if (data.results && Array.isArray(data.results)) {
-                    contractsData = data.results;
-                } else {
-                    // If it's a single object, wrap it in an array
-                    contractsData = [data];
-                }
-            }
-
-            if (contractsData.length > 0) {
-                setContracts(contractsData);
+            if (data && data.data) {
+                setContracts(data.data);
                 setError(null);
             } else {
                 setContracts([]);
@@ -84,51 +64,41 @@ const ContractList = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            setCustomers(Array.isArray(data) ? data : []);
+            console.log('Received customers data:', data); // debug
+            if (Array.isArray(data)) {
+                setCustomers(data);
+            } else if (data && Array.isArray(data.data)) {
+                setCustomers(data.data);
+            } else {
+                setCustomers([]);
+            }
         } catch (error) {
             console.error('Error fetching customers:', error);
             setCustomers([]);
         }
     };
 
-    const fetchFurniture = async () => {
-        try {
-            const response = await fetch('http://localhost:5000/api/furniture');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            setFurniture(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error('Error fetching furniture:', error);
-            setFurniture([]);
-        }
-    };
-
     useEffect(() => {
         fetchContracts();
         fetchCustomers();
-        fetchFurniture();
     }, []);
 
     const handleOpen = (contract = null) => {
         if (contract) {
             setEditingContract(contract);
             setFormData({
-                customer_id: contract.customer_id,
-                furniture_id: contract.furniture_id,
-                quantity: contract.quantity,
-                total_amount: contract.total_amount,
-                status: contract.status,
+                number: contract.number,
+                customerId: contract.customerId,
+                date: contract.date.split('T')[0],
+                executionDate: contract.executionDate.split('T')[0],
             });
         } else {
             setEditingContract(null);
             setFormData({
-                customer_id: '',
-                furniture_id: '',
-                quantity: '',
-                total_amount: '',
-                status: 'pending',
+                number: '',
+                customerId: '',
+                date: new Date().toISOString().split('T')[0],
+                executionDate: '',
             });
         }
         setOpen(true);
@@ -138,11 +108,10 @@ const ContractList = () => {
         setOpen(false);
         setEditingContract(null);
         setFormData({
-            customer_id: '',
-            furniture_id: '',
-            quantity: '',
-            total_amount: '',
-            status: 'pending',
+            number: '',
+            customerId: '',
+            date: new Date().toISOString().split('T')[0],
+            executionDate: '',
         });
     };
 
@@ -194,14 +163,12 @@ const ContractList = () => {
         }
     };
 
-    const getCustomerName = (customerId) => {
-        const customer = customers.find(c => c.id === customerId);
+    const getCustomerName = (contract) => {
+        if (contract.Customer) {
+            return contract.Customer.name;
+        }
+        const customer = customers.find(c => c.id === contract.customerId);
         return customer ? customer.name : 'Unknown Customer';
-    };
-
-    const getFurnitureName = (furnitureId) => {
-        const item = furniture.find(f => f.id === furnitureId);
-        return item ? item.name : 'Unknown Furniture';
     };
 
     return (
@@ -228,22 +195,20 @@ const ContractList = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
+                            <TableCell>Number</TableCell>
                             <TableCell>Customer</TableCell>
-                            <TableCell>Furniture</TableCell>
-                            <TableCell>Quantity</TableCell>
-                            <TableCell>Total Amount</TableCell>
-                            <TableCell>Status</TableCell>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Execution Date</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {Array.isArray(contracts) && contracts.map((contract) => (
                             <TableRow key={contract.id}>
-                                <TableCell>{getCustomerName(contract.customer_id)}</TableCell>
-                                <TableCell>{getFurnitureName(contract.furniture_id)}</TableCell>
-                                <TableCell>{contract.quantity}</TableCell>
-                                <TableCell>${contract.total_amount}</TableCell>
-                                <TableCell>{contract.status}</TableCell>
+                                <TableCell>{contract.number}</TableCell>
+                                <TableCell>{getCustomerName(contract)}</TableCell>
+                                <TableCell>{new Date(contract.date).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(contract.executionDate).toLocaleDateString()}</TableCell>
                                 <TableCell>
                                     <IconButton onClick={() => handleOpen(contract)} color="primary">
                                         <EditIcon />
@@ -265,11 +230,19 @@ const ContractList = () => {
                 <DialogContent>
                     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
                         <TextField
+                            fullWidth
+                            label="Contract Number"
+                            value={formData.number}
+                            onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+                            margin="normal"
+                            required
+                        />
+                        <TextField
                             select
                             fullWidth
                             label="Customer"
-                            value={formData.customer_id}
-                            onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                            value={formData.customerId}
+                            onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
                             margin="normal"
                             required
                         >
@@ -280,53 +253,25 @@ const ContractList = () => {
                             ))}
                         </TextField>
                         <TextField
-                            select
                             fullWidth
-                            label="Furniture"
-                            value={formData.furniture_id}
-                            onChange={(e) => setFormData({ ...formData, furniture_id: e.target.value })}
+                            label="Date"
+                            type="date"
+                            value={formData.date}
+                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                             margin="normal"
                             required
-                        >
-                            {furniture.map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
-                                    {item.name}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
-                            fullWidth
-                            label="Quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                            margin="normal"
-                            required
-                            inputProps={{ min: 1 }}
+                            InputLabelProps={{ shrink: true }}
                         />
                         <TextField
                             fullWidth
-                            label="Total Amount"
-                            type="number"
-                            value={formData.total_amount}
-                            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+                            label="Execution Date"
+                            type="date"
+                            value={formData.executionDate}
+                            onChange={(e) => setFormData({ ...formData, executionDate: e.target.value })}
                             margin="normal"
                             required
-                            inputProps={{ min: 0, step: 0.01 }}
+                            InputLabelProps={{ shrink: true }}
                         />
-                        <TextField
-                            select
-                            fullWidth
-                            label="Status"
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            margin="normal"
-                            required
-                        >
-                            <MenuItem value="pending">Pending</MenuItem>
-                            <MenuItem value="completed">Completed</MenuItem>
-                            <MenuItem value="cancelled">Cancelled</MenuItem>
-                        </TextField>
                     </Box>
                 </DialogContent>
                 <DialogActions>

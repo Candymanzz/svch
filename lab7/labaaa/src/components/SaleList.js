@@ -23,17 +23,15 @@ import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/ico
 
 const SaleList = () => {
     const [sales, setSales] = useState([]);
-    const [customers, setCustomers] = useState([]);
+    const [contracts, setContracts] = useState([]);
     const [furniture, setFurniture] = useState([]);
     const [open, setOpen] = useState(false);
     const [editingSale, setEditingSale] = useState(null);
     const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
-        customer_id: '',
-        furniture_id: '',
+        contractId: '',
+        furnitureId: '',
         quantity: '',
-        total_amount: '',
-        sale_date: new Date().toISOString().split('T')[0],
     });
 
     const fetchSales = async () => {
@@ -44,27 +42,11 @@ const SaleList = () => {
             }
             const data = await response.json();
             console.log('Received sales data:', data); // Debug log
+            console.log('First sale object structure:', data.data?.[0]); // Debug log for first sale
 
-            // Handle different response formats
-            let salesData = [];
-            if (Array.isArray(data)) {
-                salesData = data;
-            } else if (data && typeof data === 'object') {
-                // If data is wrapped in a property (e.g., { sales: [...] })
-                if (data.sales && Array.isArray(data.sales)) {
-                    salesData = data.sales;
-                } else if (data.data && Array.isArray(data.data)) {
-                    salesData = data.data;
-                } else if (data.results && Array.isArray(data.results)) {
-                    salesData = data.results;
-                } else {
-                    // If it's a single object, wrap it in an array
-                    salesData = [data];
-                }
-            }
-
-            if (salesData.length > 0) {
-                setSales(salesData);
+            // Handle paginated response format from backend
+            if (data && data.data) {
+                setSales(data.data);
                 setError(null);
             } else {
                 setSales([]);
@@ -77,17 +59,24 @@ const SaleList = () => {
         }
     };
 
-    const fetchCustomers = async () => {
+    const fetchContracts = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/customers');
+            const response = await fetch('http://localhost:5000/api/contracts');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            setCustomers(Array.isArray(data) ? data : []);
+            console.log('Received contracts data:', data); // debug
+            if (Array.isArray(data)) {
+                setContracts(data);
+            } else if (data && Array.isArray(data.data)) {
+                setContracts(data.data);
+            } else {
+                setContracts([]);
+            }
         } catch (error) {
-            console.error('Error fetching customers:', error);
-            setCustomers([]);
+            console.error('Error fetching contracts:', error);
+            setContracts([]);
         }
     };
 
@@ -98,7 +87,14 @@ const SaleList = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            setFurniture(Array.isArray(data) ? data : []);
+            console.log('Received furniture data:', data); // debug
+            if (Array.isArray(data)) {
+                setFurniture(data);
+            } else if (data && Array.isArray(data.data)) {
+                setFurniture(data.data);
+            } else {
+                setFurniture([]);
+            }
         } catch (error) {
             console.error('Error fetching furniture:', error);
             setFurniture([]);
@@ -107,7 +103,7 @@ const SaleList = () => {
 
     useEffect(() => {
         fetchSales();
-        fetchCustomers();
+        fetchContracts();
         fetchFurniture();
     }, []);
 
@@ -115,20 +111,16 @@ const SaleList = () => {
         if (sale) {
             setEditingSale(sale);
             setFormData({
-                customer_id: sale.customer_id,
-                furniture_id: sale.furniture_id,
+                contractId: sale.contractId,
+                furnitureId: sale.furnitureId,
                 quantity: sale.quantity,
-                total_amount: sale.total_amount,
-                sale_date: new Date(sale.sale_date).toISOString().split('T')[0],
             });
         } else {
             setEditingSale(null);
             setFormData({
-                customer_id: '',
-                furniture_id: '',
+                contractId: '',
+                furnitureId: '',
                 quantity: '',
-                total_amount: '',
-                sale_date: new Date().toISOString().split('T')[0],
             });
         }
         setOpen(true);
@@ -138,11 +130,9 @@ const SaleList = () => {
         setOpen(false);
         setEditingSale(null);
         setFormData({
-            customer_id: '',
-            furniture_id: '',
+            contractId: '',
+            furnitureId: '',
             quantity: '',
-            total_amount: '',
-            sale_date: new Date().toISOString().split('T')[0],
         });
     };
 
@@ -194,14 +184,18 @@ const SaleList = () => {
         }
     };
 
-    const getCustomerName = (customerId) => {
-        const customer = customers.find(c => c.id === customerId);
-        return customer ? customer.name : 'Unknown Customer';
+    const getContractNumber = (sale) => {
+        if (sale.Contract) {
+            return sale.Contract.number;
+        }
+        return 'Unknown Contract';
     };
 
-    const getFurnitureName = (furnitureId) => {
-        const item = furniture.find(f => f.id === furnitureId);
-        return item ? item.name : 'Unknown Furniture';
+    const getFurnitureName = (sale) => {
+        if (sale.Furniture) {
+            return sale.Furniture.name;
+        }
+        return 'Unknown Furniture';
     };
 
     return (
@@ -228,22 +222,18 @@ const SaleList = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Customer</TableCell>
+                            <TableCell>Contract</TableCell>
                             <TableCell>Furniture</TableCell>
                             <TableCell>Quantity</TableCell>
-                            <TableCell>Total Amount</TableCell>
-                            <TableCell>Sale Date</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {Array.isArray(sales) && sales.map((sale) => (
                             <TableRow key={sale.id}>
-                                <TableCell>{getCustomerName(sale.customer_id)}</TableCell>
-                                <TableCell>{getFurnitureName(sale.furniture_id)}</TableCell>
+                                <TableCell>{getContractNumber(sale)}</TableCell>
+                                <TableCell>{getFurnitureName(sale)}</TableCell>
                                 <TableCell>{sale.quantity}</TableCell>
-                                <TableCell>${sale.total_amount}</TableCell>
-                                <TableCell>{new Date(sale.sale_date).toLocaleDateString()}</TableCell>
                                 <TableCell>
                                     <IconButton onClick={() => handleOpen(sale)} color="primary">
                                         <EditIcon />
@@ -267,15 +257,15 @@ const SaleList = () => {
                         <TextField
                             select
                             fullWidth
-                            label="Customer"
-                            value={formData.customer_id}
-                            onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                            label="Contract"
+                            value={formData.contractId}
+                            onChange={(e) => setFormData({ ...formData, contractId: e.target.value })}
                             margin="normal"
                             required
                         >
-                            {customers.map((customer) => (
-                                <MenuItem key={customer.id} value={customer.id}>
-                                    {customer.name}
+                            {contracts.map((contract) => (
+                                <MenuItem key={contract.id} value={contract.id}>
+                                    {contract.number}
                                 </MenuItem>
                             ))}
                         </TextField>
@@ -283,8 +273,8 @@ const SaleList = () => {
                             select
                             fullWidth
                             label="Furniture"
-                            value={formData.furniture_id}
-                            onChange={(e) => setFormData({ ...formData, furniture_id: e.target.value })}
+                            value={formData.furnitureId}
+                            onChange={(e) => setFormData({ ...formData, furnitureId: e.target.value })}
                             margin="normal"
                             required
                         >
@@ -303,26 +293,6 @@ const SaleList = () => {
                             margin="normal"
                             required
                             inputProps={{ min: 1 }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Total Amount"
-                            type="number"
-                            value={formData.total_amount}
-                            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
-                            margin="normal"
-                            required
-                            inputProps={{ min: 0, step: 0.01 }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Sale Date"
-                            type="date"
-                            value={formData.sale_date}
-                            onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })}
-                            margin="normal"
-                            required
-                            InputLabelProps={{ shrink: true }}
                         />
                     </Box>
                 </DialogContent>
